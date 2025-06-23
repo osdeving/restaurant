@@ -1,0 +1,42 @@
+entity-relationship-diagram
+
+user [icon: user, color: blue] {
+  id string pk
+  name string
+  email string unique
+  image string
+  isAdmin boolean
+}
+
+category [icon: gear] {
+  id string pk
+  title string
+  desc string
+  img string
+  slug boolean unique
+  color: string
+}
+
+product [icon: package] {
+  id string pk
+  title string
+  desc string
+  img string
+  price number
+  isFeatured boolean
+  options JSON[]
+  catSlug string
+}
+
+order {
+  id string pk
+  price number
+  status string
+  products JSON[]
+  userEmail string
+  stripedId string
+}
+
+category.slug < product.catSlug
+user.email > order.userEmail
+
