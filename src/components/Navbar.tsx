@@ -8,14 +8,13 @@ const Navbar = () => {
     const user = false;
 
   return (
-    <div className="h-12 p-4 text-red-500 flex justify-between items-center bg-white border-b-2 border-b-red-500 uppercase md:h-24 lg:h-20 xl:px-40">
+    <div className="h-12 p-4 text-red-500 flex justify-between items-center bg-white border-b-2 border-b-red-500 uppercase">
         {/* LEFT LINKS */}
         <div className='hidden md:flex gap-4 flex flex-1'>
             <Link href="/">Home</Link>
             <Link href="/menu">Menu</Link>
             <Link href="/">Contact</Link>
         </div>
-
 
         { /* LOGO */}
         <div className='text-xl md:font-bold flex-1 md:text-center'>

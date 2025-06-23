@@ -1,2 +1,7 @@
 @import "tailwindcss";
 
+@layer utilities {
+  .page-fit {
+    @apply h-[calc(100vh-9rem)];
+  }
+}
