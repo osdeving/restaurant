@@ -5,3 +5,13 @@
     @apply h-[calc(100vh-9rem)];
   }
 }
+
+/* styles/globals.css ou app/globals.css */
+.scroll-hidden {
+  -ms-overflow-style: none; /* IE e Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scroll-hidden::-webkit-scrollbar {
+  display: none; /* Chrome, Safari e Opera */
+}
