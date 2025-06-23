@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 
 const data = [
@@ -23,14 +23,6 @@ const data = [
 
 const Slider = () => {
   const [currentSlide, setCurrentSlide] = useState(2);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentSlide((prev) => (prev === data.length - 1 ? 0 : prev + 1));
-  //   }, 2000); // Change slide every 2 seconds
-
-  //   return () => clearInterval(interval); // Cleanup interval on component unmount
-  // }, []);
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] lg:flex-row bg-fuchsia-50">
