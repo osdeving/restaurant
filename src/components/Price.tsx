@@ -11,7 +11,7 @@ type PriceProps = {
   }[];
 }
 
-const Price = ({ price, id, options }:PriceProps) => {
+const Price = ({ price, options }:PriceProps) => {
 
     const [totalPrice, setTotalPrice] = React.useState(price);
     const [quantity, setQuantity] = React.useState(1);
