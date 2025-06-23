@@ -27,12 +27,24 @@ const Navbar = () => {
         </div>
 
     {/* RIGHT LINKS */}
-    <div className='hidden md:flex gap-4 items-center justify-end flex-1'>
-        <div className='md:absolute top-3 right-2 lg:static flex items-center gap-2 cursor-pointer bg-orange-300 px-1 rounded-md'>
+    <div className='hidden md:flex gap-4 items-start justify-end flex-1'>
+        <div className='md:absolute h-8 top-3 right-2 lg:static flex items-center gap-3 cursor-pointer bg-red-500 px-2 rounded-full'>
             <Image src='/phone.png' alt='Phone Icon' width={20} height={20} />
-            <span>(19) 999999999</span>
+            <span className='text-white'>(19) 999999999</span>
         </div>
-        {!user ? (<Link href="/login">Login</Link>) : (<Link href="/orders">Orders</Link>)}
+
+        {!user ? (
+            <Link href="/login">
+                <div className="w-18 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm font-bold hover:opacity-80">
+                Login
+                </div>
+            </Link>
+            ) : (
+            <Link href="/account">
+                <Image src="/user.png" alt="User" width={32} height={32} className="rounded-full" />
+            </Link>
+        )}
+
         <Link href="/cart"><CartIcon /></Link>
     </div>
     </div>

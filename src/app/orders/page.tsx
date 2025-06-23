@@ -2,7 +2,7 @@ import React from 'react'
 
 function OrdersPage() {
   return (
-    <div className='p-4 lg:px-20 xl:px-40'>
+    <div className='page-fit-scroll p-4 lg:px-20 xl:px-40'>
       <table className='w-full border-separate border-spacing-3'>
         <thead className=''>
           <tr className='text-left text-sm md:text-base text-gray-500'>
@@ -34,6 +34,97 @@ function OrdersPage() {
             <td className='py-6 px-1 '>$120.00</td>
             <td className='py-6 px-1 hidden md:block'>Product D, Product E, Product F</td>
             <td className='py-6 px-1'>Cancelled</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
+          </tr>
+          <tr className='text-sm md:text-base odd:bg-gray-100'>
+            <td className='py-6 px-1 hidden md:block'>#12348</td>
+            <td className='py-6 px-1 '>2023-10-04</td>
+            <td className='py-6 px-1 '>$45.50</td>
+            <td className='py-6 px-1 hidden md:block'>Product G</td>
+            <td className='py-6 px-1'>Delivered</td>
           </tr>
           <tr className='text-sm md:text-base odd:bg-gray-100'>
             <td className='py-6 px-1 hidden md:block'>#12348</td>
