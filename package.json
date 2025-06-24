@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "next": "15.3.4",
+    "prisma": "^6.10.1",
+    "prisma-client": "^0.0.0",
     "react": "^19.0.0",
     "react-countdown": "^2.3.6",
     "react-dom": "^19.0.0"
