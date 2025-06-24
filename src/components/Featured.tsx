@@ -1,10 +1,29 @@
-'use client';
-
 import React from 'react'
 import Image from 'next/image';
-import { featuredProducts } from '../data';
+import { ProductType } from '../app/types/types';
 
-const Featured = () => {
+
+const getData = async (): Promise<ProductType[]> => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to fetch products');
+    }
+
+    return res.json();
+
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
+  }
+}
+
+const Featured = async () => {
+    const featuredProducts: ProductType[] = await getData();
+
   return (
     <div className="w-screen overflow-x-scroll text-red-500">
 

@@ -1,12 +1,41 @@
 import React from 'react';
-import { pizzas } from '../../../data';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ProductType } from '@app/types/types';
 
-const CategoryPage = () => {
+
+const getData = async (category: string): Promise<ProductType[]> => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products?cat=${category}`, {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to fetch products');
+    }
+
+    return res.json();
+
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
+  }
+}
+
+type Props = {  params: {
+    category: string;
+  } };
+
+const CategoryPage = async ({params}: Props) => {
+  const products: ProductType[] = await getData(params.category);
+
+  if (products.length === 0) {
+    return <div className='page-fit flex items-center justify-center text-red-500 text-center my-4'>No products found</div>;
+  }
+
   return (
     <div className='flex flex-wrap text-red-500 '>
-      {pizzas.map((item) => (
+      {products.map((item) => (
         <Link className='w-full h-[60vh] border-r-2 border-b-2 border-red-500 sm:w-1/2 lg:w-1/3 p-4 flex flex-col justify-between group odd:bg-fuchsia-50' href={`/product/${item.id}`} key={item.id}>
           {/* Image Container */}
           {item.img && (
@@ -31,3 +60,4 @@ const CategoryPage = () => {
   );
 }
 export default CategoryPage;
+
