@@ -3,10 +3,11 @@ import Menu from '@/components/Menu'
 import Link from 'next/link'
 import CartIcon from './CartIcon'
 import Image from 'next/image'
+import AuthButton from './AuthButton'
+
+
 
 const Navbar = () => {
-    const user = false;
-
   return (
     <div className="h-12 p-4 text-red-500 flex justify-between items-center bg-white border-b-2 border-b-red-500 uppercase">
         {/* LEFT LINKS */}
@@ -33,17 +34,8 @@ const Navbar = () => {
             <span className='text-white'>(19) 999999999</span>
         </div>
 
-        {!user ? (
-            <Link href="/login">
-                <div className="w-18 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm font-bold hover:opacity-80">
-                Login
-                </div>
-            </Link>
-            ) : (
-            <Link href="/account">
-                <Image src="/user.png" alt="User" width={32} height={32} className="rounded-full" />
-            </Link>
-        )}
+         <AuthButton />
+
 
         <Link href="/cart"><CartIcon /></Link>
     </div>

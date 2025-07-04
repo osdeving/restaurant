@@ -1,6 +1,10 @@
+'use client'
+
 import React from 'react'
 import Image from 'next/image'
-import Link from 'next/dist/client/link'
+import Link from 'next/link'
+import { signIn } from 'next-auth/react'
+import { withAuthRedirect } from '@/app/hoc/withAuthRedirect'
 
 const LoginPage = () => {
   return (
@@ -22,14 +26,17 @@ const LoginPage = () => {
           <p className="mb-6 text-gray-700">Log into your account or create a new one using social buttons</p>
 
           {/* GOOGLE SIGN IN */}
-          <button className="flex gap-4 p-2 px-4 ring-1 ring-orange-100 rounded-md">
-            <Image src="/google.png" alt="Google" width={20} height={20} className='object-contain' />
+          <button
+            className="flex gap-4 p-2 px-4 ring-1 ring-orange-100 rounded-md"
+            onClick={() => signIn('google')}
+          >
+            <Image src="/google.png" alt="Google" width={20} height={20} className="object-contain" />
             <span>Sign in with Google</span>
           </button>
 
           {/* FACEBOOK SIGN IN */}
           <button className="flex gap-4 p-2 px-4 ring-1 ring-blue-100 rounded-md">
-            <Image src="/facebook.png" alt="Facebook" width={20} height={20} className='object-contain' />
+            <Image src="/facebook.png" alt="Facebook" width={20} height={20} className="object-contain" />
             <span>Sign in with Facebook</span>
           </button>
 
@@ -42,4 +49,4 @@ const LoginPage = () => {
   )
 }
 
-export default LoginPage
+export default withAuthRedirect(LoginPage)
