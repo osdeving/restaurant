@@ -1,6 +1,6 @@
 import { prisma } from "@/app/utils/connect";
 import { featuredProducts, menu } from "./data";
-import { Prisma } from "./generated/prisma";
+import { Prisma } from "@prisma/client";
 
 async function seed() {
   try {
