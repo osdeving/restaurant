@@ -1,22 +1,34 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { formatCurrency, siteConfig } from "@/config/site";
 
-type Override =
-  | { mode: "used"; amount: number }
-  | { mode: "closed" };
+type PersistedCreditConfig = {
+  creditAmount: string;
+  mealPrice: string;
+  dailyLimit: number;
+  startDate: string;
+  closedWeekdays: number[];
+  dayAdjustments: Record<string, number>;
+};
 
 type DayPlan = {
   key: string;
   date: Date;
   planned: number;
+  baseline: number;
   remainingAfter: number;
   isClosed: boolean;
   isWeeklyClosed: boolean;
-  isCustomClosed: boolean;
-  isManual: boolean;
+  isAdjusted: boolean;
   isCovered: boolean;
+};
+
+type AdjustmentEntry = {
+  key: string;
+  date: Date;
+  baseline: number;
+  planned: number;
 };
 
 type MonthPlan = {
@@ -26,14 +38,9 @@ type MonthPlan = {
   days: DayPlan[];
 };
 
-const STORAGE_KEY = "marmitex-credit-calculator-v1";
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-const SAMPLE_START_DATE = "2025-04-17";
-
-const sampleOverrides: Record<string, Override> = {
-  "2025-04-17": { mode: "used", amount: 1 },
-  "2025-04-18": { mode: "used", amount: 1 },
-};
+const MAX_DAYS_TO_SIMULATE = 730;
+const API_ROUTE = "/api/credit-config";
 
 const monthFormatter = new Intl.DateTimeFormat("pt-BR", {
   month: "long",
@@ -45,19 +52,9 @@ const longDateFormatter = new Intl.DateTimeFormat("pt-BR", {
   month: "long",
 });
 
-const shortDateFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  month: "2-digit",
-});
-
 const decimalFormatter = new Intl.NumberFormat("pt-BR", {
   minimumFractionDigits: 0,
   maximumFractionDigits: 1,
-});
-
-const listFormatter = new Intl.ListFormat("pt-BR", {
-  style: "long",
-  type: "conjunction",
 });
 
 function parseCurrency(value: string) {
@@ -65,7 +62,7 @@ function parseCurrency(value: string) {
   if (!clean) return 0;
 
   const normalized = clean.includes(",")
-    ? clean.replace(/\./g, "").replace(",", ".")
+    ? clean.replaceAll(".", "").replace(",", ".")
     : clean;
 
   return Number(normalized.replace(/[^\d.-]/g, "")) || 0;
@@ -102,82 +99,56 @@ function formatLongDate(date: Date) {
 }
 
 function formatShortDate(date: Date) {
-  return shortDateFormatter.format(date);
+  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function isClosedDate(
-  date: Date,
-  closedWeekdays: number[],
-  overrides: Record<string, Override>,
-) {
-  const override = overrides[toKey(date)];
-  return closedWeekdays.includes(date.getDay()) || override?.mode === "closed";
+function getTodayKey() {
+  return toKey(new Date());
 }
 
-function buildPlan(
-  creditValue: number,
-  mealPrice: number,
-  dailyLimit: number,
-  startDateKey: string,
+function defaultConfig(): PersistedCreditConfig {
+  return {
+    creditAmount: "",
+    mealPrice: "",
+    dailyLimit: 2,
+    startDate: getTodayKey(),
+    closedWeekdays: [0],
+    dayAdjustments: {},
+  };
+}
+
+function toDayNumber(date: Date) {
+  return Math.floor(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000,
+  );
+}
+
+function diffInDays(from: Date, to: Date) {
+  return toDayNumber(to) - toDayNumber(from);
+}
+
+function getDisplayedEndDate(
+  lastMealDate: Date | null,
+  startDate: Date,
   closedWeekdays: number[],
-  overrides: Record<string, Override>,
 ) {
-  const rawMeals = mealPrice > 0 ? creditValue / mealPrice : 0;
-  const totalMeals = Math.max(0, Math.ceil(rawMeals));
-  const perDay = Math.max(1, dailyLimit);
-  const startDate = parseDate(startDateKey);
-  const simulation: DayPlan[] = [];
-
-  let remaining = totalMeals;
-  let date = startDate;
-  let lastMealDate: Date | null = null;
-
-  for (let guard = 0; guard < 730; guard += 1) {
-    const key = toKey(date);
-    const override = overrides[key];
-    const isWeeklyClosed = closedWeekdays.includes(date.getDay());
-    const isCustomClosed = override?.mode === "closed";
-    const isClosed = isWeeklyClosed || isCustomClosed;
-    const isManual = override?.mode === "used";
-    let planned = 0;
-
-    if (!isClosed && remaining > 0) {
-      planned = isManual
-        ? Math.min(remaining, Math.max(0, Math.min(perDay, override.amount)))
-        : Math.min(remaining, perDay);
-      remaining -= planned;
-      if (planned > 0) {
-        lastMealDate = new Date(date);
-      }
-    }
-
-    simulation.push({
-      key,
-      date: new Date(date),
-      planned,
-      remainingAfter: Math.max(0, remaining),
-      isClosed,
-      isWeeklyClosed,
-      isCustomClosed,
-      isManual,
-      isCovered: remaining > 0 || planned > 0,
-    });
-
-    if (remaining <= 0 && lastMealDate) break;
-    date = addDays(date, 1);
-  }
-
-  const lastConsumptionDate = lastMealDate ?? startDate;
-  let displayedEndDate = new Date(lastConsumptionDate);
+  let displayedEndDate = new Date(lastMealDate ?? startDate);
 
   for (let guard = 0; guard < 20; guard += 1) {
     const nextDate = addDays(displayedEndDate, 1);
-    if (!isClosedDate(nextDate, closedWeekdays, overrides)) break;
+    if (!closedWeekdays.includes(nextDate.getDay())) break;
     displayedEndDate = nextDate;
   }
 
-  const calendarStart = startOfMonth(startDate);
-  const calendarEnd = endOfMonth(displayedEndDate);
+  return displayedEndDate;
+}
+
+function buildCalendarDays(
+  simulation: DayPlan[],
+  calendarStart: Date,
+  calendarEnd: Date,
+  closedWeekdays: number[],
+) {
   const simulationByKey = new Map(simulation.map((day) => [day.key, day]));
   const calendarDays: DayPlan[] = [];
 
@@ -194,22 +165,145 @@ function buildPlan(
       continue;
     }
 
-    const override = overrides[key];
     const isWeeklyClosed = closedWeekdays.includes(calendarDate.getDay());
-    const isCustomClosed = override?.mode === "closed";
 
     calendarDays.push({
       key,
       date: new Date(calendarDate),
       planned: 0,
+      baseline: 0,
       remainingAfter: 0,
-      isClosed: isWeeklyClosed || isCustomClosed,
+      isClosed: isWeeklyClosed,
       isWeeklyClosed,
-      isCustomClosed,
-      isManual: override?.mode === "used",
+      isAdjusted: false,
       isCovered: false,
     });
   }
+
+  return calendarDays;
+}
+
+function getDailyMeals(
+  remaining: number,
+  perDay: number,
+  isClosed: boolean,
+  requested: number | undefined,
+) {
+  if (isClosed || remaining <= 0) {
+    return { baseline: 0, planned: 0 };
+  }
+
+  const baseline = Math.min(remaining, perDay);
+
+  if (requested === undefined) {
+    return { baseline, planned: baseline };
+  }
+
+  return {
+    baseline,
+    planned: Math.min(remaining, Math.max(0, Math.floor(requested))),
+  };
+}
+
+function simulateDays(
+  totalMeals: number,
+  startDate: Date,
+  perDay: number,
+  closedWeekdays: number[],
+  dayAdjustments: Record<string, number>,
+) {
+  const simulation: DayPlan[] = [];
+  const adjustments: AdjustmentEntry[] = [];
+
+  let remaining = totalMeals;
+  let date = startDate;
+  let lastMealDate: Date | null = null;
+
+  for (let guard = 0; guard < MAX_DAYS_TO_SIMULATE; guard += 1) {
+    const key = toKey(date);
+    const isWeeklyClosed = closedWeekdays.includes(date.getDay());
+    const isClosed = isWeeklyClosed;
+    const requested = dayAdjustments[key];
+    const { baseline, planned } = getDailyMeals(
+      remaining,
+      perDay,
+      isClosed,
+      requested,
+    );
+
+    remaining -= planned;
+
+    if (planned > 0) {
+      lastMealDate = new Date(date);
+    }
+
+    const isAdjusted =
+      !isClosed && requested !== undefined && planned !== baseline;
+
+    if (isAdjusted) {
+      adjustments.push({
+        key,
+        date: new Date(date),
+        baseline,
+        planned,
+      });
+    }
+
+    simulation.push({
+      key,
+      date: new Date(date),
+      planned,
+      baseline,
+      remainingAfter: Math.max(0, remaining),
+      isClosed,
+      isWeeklyClosed,
+      isAdjusted,
+      isCovered: remaining > 0 || planned > 0,
+    });
+
+    if (remaining <= 0 && lastMealDate) {
+      break;
+    }
+
+    date = addDays(date, 1);
+  }
+
+  return {
+    simulation,
+    adjustments,
+    lastMealDate,
+    lastConsumptionDate: lastMealDate ?? startDate,
+  };
+}
+
+function buildPlan(
+  creditValue: number,
+  mealPrice: number,
+  dailyLimit: number,
+  startDateKey: string,
+  closedWeekdays: number[],
+  dayAdjustments: Record<string, number>,
+) {
+  const rawMeals = mealPrice > 0 ? creditValue / mealPrice : 0;
+  const totalMeals = Math.max(0, Math.ceil(rawMeals));
+  const perDay = Math.max(1, dailyLimit);
+  const startDate = parseDate(startDateKey);
+  const { simulation, adjustments, lastMealDate, lastConsumptionDate } =
+    simulateDays(totalMeals, startDate, perDay, closedWeekdays, dayAdjustments);
+  const displayedEndDate = getDisplayedEndDate(
+    lastMealDate,
+    startDate,
+    closedWeekdays,
+  );
+
+  const calendarStart = startOfMonth(startDate);
+  const calendarEnd = endOfMonth(displayedEndDate);
+  const calendarDays = buildCalendarDays(
+    simulation,
+    calendarStart,
+    calendarEnd,
+    closedWeekdays,
+  );
 
   const months: MonthPlan[] = [];
   let currentMonth = startOfMonth(calendarStart);
@@ -225,7 +319,10 @@ function buildPlan(
     months.push({
       key: monthKey,
       label: monthFormatter.format(currentMonth),
-      blanks: Array.from({ length: currentMonth.getDay() }, (_, index) => index),
+      blanks: Array.from(
+        { length: currentMonth.getDay() },
+        (_, index) => index,
+      ),
       days: monthDays,
     });
 
@@ -237,30 +334,12 @@ function buildPlan(
     );
   }
 
-  const manualEntries = Object.entries(overrides)
-    .filter(([, override]) => override.mode === "used" && override.amount > 0)
-    .sort(([a], [b]) => a.localeCompare(b));
-
-  const manualTotal = manualEntries.reduce(
-    (sum, [, override]) =>
-      override.mode === "used" ? sum + override.amount : sum,
-    0,
-  );
-
-  const customClosures = Object.entries(overrides)
-    .filter(([, override]) => override.mode === "closed")
-    .map(([key]) => key)
-    .sort((a, b) => a.localeCompare(b));
-
   return {
     rawMeals,
     totalMeals,
-    remainingAfterManual: Math.max(0, totalMeals - manualTotal),
-    manualEntries,
-    manualTotal,
-    customClosures,
     lastConsumptionDate,
     displayedEndDate,
+    adjustments,
     months,
   };
 }
@@ -270,70 +349,101 @@ function plural(value: number, singular: string, pluralText: string) {
 }
 
 function buildSummary(
+  customerPlan: ReturnType<typeof buildPlan>,
+  defaultPlan: ReturnType<typeof buildPlan>,
   creditValue: number,
   mealPrice: number,
-  plan: ReturnType<typeof buildPlan>,
+  dailyLimit: number,
+  startDate: string,
+  closedWeekdays: number[],
 ) {
-  const lines = [
+  if (creditValue <= 0 || mealPrice <= 0) {
+    return [
+      "Preencha os campos para gerar o resumo:",
+      "- Valor do crédito",
+      "- Valor por refeição",
+      "- Retiradas por dia",
+      "- Data de início",
+    ].join("\n");
+  }
+
+  const weekdaysClosedText =
+    closedWeekdays.length > 0
+      ? closedWeekdays.map((day) => WEEKDAYS[day]).join(", ")
+      : "Nenhum";
+
+  let lines = [
     "Boa tarde,",
     "",
-    `${formatCurrency(creditValue)} ÷ ${formatCurrency(mealPrice)} = ${decimalFormatter.format(plan.rawMeals)} refeições arredondado ficam:`,
+    "Segue o cálculo dos créditos:",
+    `- Valor do crédito: ${formatCurrency(creditValue)}`,
+    `- Valor por refeição: ${formatCurrency(mealPrice)}`,
+    `- Início dos créditos: ${formatLongDate(parseDate(startDate))}`,
+    `- Retiradas por dia: ${dailyLimit}`,
+    `- Dias sem atendimento: ${weekdaysClosedText}`,
     "",
-    `${plan.totalMeals} ${plural(plan.totalMeals, "refeição", "refeições")} 😋`,
+    `${formatCurrency(creditValue)} ÷ ${formatCurrency(mealPrice)} = ${decimalFormatter.format(customerPlan.rawMeals)} refeições (arredondado):`,
+    "",
+    `${customerPlan.totalMeals} ${plural(customerPlan.totalMeals, "refeição", "refeições")} 😋`,
     "",
   ];
 
-  if (plan.manualTotal > 0) {
-    const dates = listFormatter.format(
-      plan.manualEntries.map(([key]) => formatShortDate(parseDate(key))),
-    );
-    const dayLabel = plan.manualEntries.length === 1 ? "O dia" : "Os dias";
-    const verb = plan.manualEntries.length === 1 ? "soma" : "somam";
+  if (customerPlan.adjustments.length > 0) {
+    lines = lines.concat(["Ajustes manuais no calendário:"]);
 
-    lines.push(
-      `${dayLabel} ${dates} ${verb} ${plan.manualTotal} ${plural(plan.manualTotal, "retirada", "retiradas")}.`,
-      "",
-    );
+    for (const adjustment of customerPlan.adjustments) {
+      if (adjustment.planned < adjustment.baseline) {
+        lines = lines.concat([
+          `- O cliente retirou apenas ${adjustment.planned} ${plural(adjustment.planned, "marmita", "marmitas")} no dia ${formatShortDate(adjustment.date)} (padrão ${adjustment.baseline}).`,
+        ]);
+      } else {
+        lines = lines.concat([
+          `- O cliente retirou ${adjustment.planned} ${plural(adjustment.planned, "marmita", "marmitas")} no dia ${formatShortDate(adjustment.date)} (padrão ${adjustment.baseline}).`,
+        ]);
+      }
+    }
+
+    lines = lines.concat([""]);
   }
 
-  const remainingText =
-    plan.manualTotal > 0
-      ? `As ${plan.remainingAfterManual} restantes`
-      : `As ${plan.totalMeals} ${plural(plan.totalMeals, "refeição", "refeições")}`;
+  const shiftDays = diffInDays(
+    defaultPlan.displayedEndDate,
+    customerPlan.displayedEndDate,
+  );
 
-  lines.push(`${remainingText} vão até: ${formatLongDate(plan.displayedEndDate)}.`);
-
-  if (plan.customClosures.length > 0) {
-    const closures = listFormatter.format(
-      plan.customClosures.map((key) => formatShortDate(parseDate(key))),
-    );
-    lines.push(
-      "",
-      `Obs: com ${closures} sem atendimento, vai até ${formatLongDate(plan.displayedEndDate)}.`,
-    );
+  if (shiftDays > 0) {
+    lines = lines.concat([
+      `Com esses ajustes, o prazo foi prorrogado em ${shiftDays} ${plural(shiftDays, "dia", "dias")}.`,
+    ]);
+  } else if (shiftDays < 0) {
+    const advancedDays = Math.abs(shiftDays);
+    lines = lines.concat([
+      `Com esses ajustes, o prazo foi adiantado em ${advancedDays} ${plural(advancedDays, "dia", "dias")}.`,
+    ]);
+  } else {
+    lines = lines.concat([
+      "Com esses ajustes, o prazo final permaneceu o mesmo.",
+    ]);
   }
+
+  lines = lines.concat([
+    "",
+    `As ${customerPlan.totalMeals} ${plural(customerPlan.totalMeals, "refeição", "refeições")} vão até: ${formatLongDate(customerPlan.displayedEndDate)}.`,
+  ]);
 
   return lines.join("\n");
 }
 
-function getDayClass(day: DayPlan, isSelected: boolean) {
+function getDayClass(day: DayPlan) {
   const base =
     "min-h-[5.25rem] w-full border p-2 text-left transition focus:outline-none focus:ring-2 focus:ring-red-600";
 
-  if (isSelected) {
-    return `${base} border-red-700 bg-red-600 text-white shadow-md`;
-  }
-
-  if (day.isCustomClosed) {
-    return `${base} border-neutral-300 bg-neutral-900 text-white`;
+  if (day.isAdjusted) {
+    return `${base} border-amber-300 bg-amber-100 text-red-700`;
   }
 
   if (day.isWeeklyClosed) {
     return `${base} border-neutral-200 bg-neutral-100 text-neutral-400`;
-  }
-
-  if (day.isManual) {
-    return `${base} border-amber-300 bg-amber-100 text-red-700`;
   }
 
   if (day.planned > 0) {
@@ -343,76 +453,164 @@ function getDayClass(day: DayPlan, isSelected: boolean) {
   return `${base} border-neutral-200 bg-white text-neutral-400`;
 }
 
+function getDayTag(day: DayPlan) {
+  if (day.isClosed) return "Fechado";
+  if (day.planned > 0) {
+    return day.isAdjusted ? `${day.planned} ref.*` : `${day.planned} ref.`;
+  }
+  return "0 ref.";
+}
+
 export default function CreditCalculator() {
-  const [creditAmount, setCreditAmount] = useState("792,11");
-  const [mealPrice, setMealPrice] = useState("20,00");
-  const [dailyLimit, setDailyLimit] = useState(2);
-  const [startDate, setStartDate] = useState(SAMPLE_START_DATE);
-  const [closedWeekdays, setClosedWeekdays] = useState<number[]>([0]);
-  const [overrides, setOverrides] =
-    useState<Record<string, Override>>(sampleOverrides);
-  const [selectedDate, setSelectedDate] = useState("2025-05-01");
+  const [creditAmount, setCreditAmount] = useState(
+    defaultConfig().creditAmount,
+  );
+  const [mealPrice, setMealPrice] = useState(defaultConfig().mealPrice);
+  const [dailyLimit, setDailyLimit] = useState(defaultConfig().dailyLimit);
+  const [startDate, setStartDate] = useState(defaultConfig().startDate);
+  const [closedWeekdays, setClosedWeekdays] = useState<number[]>(
+    defaultConfig().closedWeekdays,
+  );
+  const [dayAdjustments, setDayAdjustments] = useState<Record<string, number>>(
+    defaultConfig().dayAdjustments,
+  );
+  const [selectedDate, setSelectedDate] = useState(defaultConfig().startDate);
+  const [requiresAuth, setRequiresAuth] = useState(false);
+  const [adminUser, setAdminUser] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "loading" | "saving" | "saved" | "error" | "auth"
+  >("loading");
+  const [saveMessage, setSaveMessage] = useState("");
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as {
-          creditAmount?: string;
-          mealPrice?: string;
-          dailyLimit?: number;
-          startDate?: string;
-          closedWeekdays?: number[];
-          overrides?: Record<string, Override>;
-          selectedDate?: string;
-        };
-
-        setCreditAmount(parsed.creditAmount ?? "792,11");
-        setMealPrice(parsed.mealPrice ?? "20,00");
-        setDailyLimit(parsed.dailyLimit ?? 2);
-        setStartDate(parsed.startDate ?? SAMPLE_START_DATE);
-        setClosedWeekdays(parsed.closedWeekdays ?? [0]);
-        setOverrides(parsed.overrides ?? sampleOverrides);
-        setSelectedDate(parsed.selectedDate ?? "2025-05-01");
-      } catch {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
+  const saveConfig = useCallback(async () => {
+    if (requiresAuth && (!adminUser || !adminPassword)) {
+      setSaveStatus("auth");
+      setSaveMessage("Informe usuário e senha admin para salvar.");
+      return;
     }
 
-    setLoaded(true);
-  }, []);
+    const payload: PersistedCreditConfig = {
+      creditAmount,
+      mealPrice,
+      dailyLimit,
+      startDate,
+      closedWeekdays,
+      dayAdjustments,
+    };
 
-  useEffect(() => {
-    if (!loaded) return;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
 
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        creditAmount,
-        mealPrice,
-        dailyLimit,
-        startDate,
-        closedWeekdays,
-        overrides,
-        selectedDate,
-      }),
-    );
+    if (requiresAuth) {
+      const authValue = `${adminUser}:${adminPassword}`;
+      headers.Authorization = `Basic ${globalThis.btoa(authValue)}`;
+    }
+
+    setSaveStatus("saving");
+    setSaveMessage("Salvando configuração compartilhada...");
+
+    try {
+      const response = await fetch(API_ROUTE, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(payload),
+      });
+
+      if (response.status === 401) {
+        setSaveStatus("auth");
+        setSaveMessage("Usuário ou senha admin inválidos.");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Falha ao salvar");
+      }
+
+      const result = (await response.json()) as { updatedAt?: string };
+      setSaveStatus("saved");
+      setSaveMessage("Configuração compartilhada salva com sucesso.");
+      setUpdatedAt(result.updatedAt ?? null);
+    } catch {
+      setSaveStatus("error");
+      setSaveMessage("Não foi possível salvar. Tente novamente.");
+    }
   }, [
+    adminPassword,
+    adminUser,
     closedWeekdays,
     creditAmount,
     dailyLimit,
-    loaded,
+    dayAdjustments,
     mealPrice,
-    overrides,
-    selectedDate,
+    requiresAuth,
     startDate,
   ]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSharedConfig() {
+      setSaveStatus("loading");
+      setSaveMessage("Carregando configuração compartilhada...");
+
+      try {
+        const response = await fetch(API_ROUTE, { cache: "no-store" });
+        const result = (await response.json()) as {
+          requiresAuth: boolean;
+          data: PersistedCreditConfig | null;
+          updatedAt: string | null;
+        };
+
+        if (cancelled) return;
+
+        setRequiresAuth(Boolean(result.requiresAuth));
+        setUpdatedAt(result.updatedAt);
+
+        if (result.data) {
+          setCreditAmount(result.data.creditAmount ?? "");
+          setMealPrice(result.data.mealPrice ?? "");
+          setDailyLimit(Math.max(1, Number(result.data.dailyLimit) || 1));
+          setStartDate(result.data.startDate ?? getTodayKey());
+          setSelectedDate(result.data.startDate ?? getTodayKey());
+          setClosedWeekdays(result.data.closedWeekdays ?? [0]);
+          setDayAdjustments(result.data.dayAdjustments ?? {});
+        }
+
+        setSaveStatus("idle");
+        setSaveMessage("");
+      } catch {
+        if (cancelled) return;
+        setSaveStatus("error");
+        setSaveMessage("Falha ao carregar configuração compartilhada.");
+      }
+    }
+
+    void loadSharedConfig();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const creditValue = parseCurrency(creditAmount);
   const unitPrice = parseCurrency(mealPrice);
+
+  const defaultPlan = useMemo(
+    () =>
+      buildPlan(
+        creditValue,
+        unitPrice,
+        dailyLimit,
+        startDate,
+        closedWeekdays,
+        {},
+      ),
+    [closedWeekdays, creditValue, dailyLimit, startDate, unitPrice],
+  );
 
   const plan = useMemo(
     () =>
@@ -422,31 +620,67 @@ export default function CreditCalculator() {
         dailyLimit,
         startDate,
         closedWeekdays,
-        overrides,
+        dayAdjustments,
       ),
-    [closedWeekdays, creditValue, dailyLimit, overrides, startDate, unitPrice],
+    [
+      closedWeekdays,
+      creditValue,
+      dailyLimit,
+      dayAdjustments,
+      startDate,
+      unitPrice,
+    ],
   );
 
   const summary = useMemo(
-    () => buildSummary(creditValue, unitPrice, plan),
-    [creditValue, plan, unitPrice],
+    () =>
+      buildSummary(
+        plan,
+        defaultPlan,
+        creditValue,
+        unitPrice,
+        dailyLimit,
+        startDate,
+        closedWeekdays,
+      ),
+    [
+      closedWeekdays,
+      creditValue,
+      dailyLimit,
+      defaultPlan,
+      plan,
+      startDate,
+      unitPrice,
+    ],
   );
 
-  const selectedOverride = overrides[selectedDate];
-  const selectedPlan = plan.months
-    .flatMap((month) => month.days)
-    .find((day) => day.key === selectedDate);
+  const selectedPlan = useMemo(
+    () =>
+      plan.months
+        .flatMap((month) => month.days)
+        .find((day) => day.key === selectedDate),
+    [plan.months, selectedDate],
+  );
 
-  const setDayOverride = (override?: Override) => {
-    setOverrides((current) => {
+  const selectedRequested = dayAdjustments[selectedDate];
+
+  const setDayAdjustment = (
+    dateKey: string,
+    value: number | undefined,
+    baseline: number,
+    isClosed: boolean,
+  ) => {
+    if (isClosed) return;
+
+    setDayAdjustments((current) => {
       const next = { ...current };
 
-      if (!override) {
-        delete next[selectedDate];
+      if (value === undefined || value === baseline) {
+        delete next[dateKey];
         return next;
       }
 
-      next[selectedDate] = override;
+      next[dateKey] = Math.max(0, Math.floor(value));
       return next;
     });
   };
@@ -455,25 +689,32 @@ export default function CreditCalculator() {
     setClosedWeekdays((current) =>
       current.includes(weekday)
         ? current.filter((item) => item !== weekday)
-        : [...current, weekday].sort(),
+        : [...current, weekday].sort((a, b) => a - b),
     );
-  };
-
-  const resetExample = () => {
-    setCreditAmount("792,11");
-    setMealPrice("20,00");
-    setDailyLimit(2);
-    setStartDate(SAMPLE_START_DATE);
-    setClosedWeekdays([0]);
-    setOverrides(sampleOverrides);
-    setSelectedDate("2025-05-01");
   };
 
   const copySummary = async () => {
     await navigator.clipboard.writeText(summary);
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    globalThis.setTimeout(() => setCopied(false), 1800);
   };
+
+  const defaultDeadline = defaultPlan.displayedEndDate;
+  const currentDeadline = plan.displayedEndDate;
+  const deadlineShift = diffInDays(defaultDeadline, currentDeadline);
+  let deadlineShiftText = "Prazo sem alteração.";
+
+  if (deadlineShift > 0) {
+    deadlineShiftText = `Prazo prorrogado em ${deadlineShift} ${plural(deadlineShift, "dia", "dias")}.`;
+  }
+
+  if (deadlineShift < 0) {
+    const advancedDays = Math.abs(deadlineShift);
+    deadlineShiftText = `Prazo adiantado em ${advancedDays} ${plural(advancedDays, "dia", "dias")}.`;
+  }
+
+  const selectedSuggestedValue =
+    selectedRequested ?? selectedPlan?.baseline ?? dailyLimit;
 
   return (
     <main className="min-h-screen bg-[#f4c624] text-red-700">
@@ -484,11 +725,11 @@ export default function CreditCalculator() {
               Créditos de marmitas
             </p>
             <h1 className="max-w-2xl text-4xl font-black uppercase leading-tight text-red-700 md:text-6xl">
-              Calculadora de prazo e retiradas
+              Calculadora de prazo
             </h1>
             <p className="max-w-xl text-lg font-bold text-red-900">
-              Informe o crédito, ajuste o calendário e gere o resumo pronto para
-              enviar no WhatsApp.
+              Informe os valores do cliente, ajuste o calendário dia a dia e
+              acompanhe o prazo recalculado automaticamente.
             </p>
             <a
               href={siteConfig.whatsappHref}
@@ -500,7 +741,7 @@ export default function CreditCalculator() {
 
           <div className="grid gap-3 rounded-md bg-white p-4 shadow-xl md:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-bold text-red-800">
-              Valor do crédito
+              <span>Valor do crédito</span>
               <input
                 value={creditAmount}
                 onChange={(event) => setCreditAmount(event.target.value)}
@@ -510,7 +751,7 @@ export default function CreditCalculator() {
             </label>
 
             <label className="flex flex-col gap-2 text-sm font-bold text-red-800">
-              Valor por refeição
+              <span>Valor por refeição</span>
               <input
                 value={mealPrice}
                 onChange={(event) => setMealPrice(event.target.value)}
@@ -520,7 +761,7 @@ export default function CreditCalculator() {
             </label>
 
             <label className="flex flex-col gap-2 text-sm font-bold text-red-800">
-              Retiradas por dia
+              <span>Retiradas por dia</span>
               <input
                 value={dailyLimit}
                 min={1}
@@ -534,7 +775,7 @@ export default function CreditCalculator() {
             </label>
 
             <label className="flex flex-col gap-2 text-sm font-bold text-red-800">
-              Início dos créditos
+              <span>Início dos créditos</span>
               <input
                 value={startDate}
                 onChange={(event) => {
@@ -586,21 +827,38 @@ export default function CreditCalculator() {
           <strong className="text-3xl text-red-700">
             {decimalFormatter.format(plan.rawMeals)}
           </strong>
-          <p className="text-sm font-bold text-red-700">refeições antes do arred.</p>
+          <p className="text-sm font-bold text-red-700">
+            refeições antes do arred.
+          </p>
         </div>
         <div className="rounded-md bg-white p-4 shadow-md">
-          <p className="text-sm font-bold text-red-800">Já marcado</p>
-          <strong className="text-3xl text-red-700">{plan.manualTotal}</strong>
+          <p className="text-sm font-bold text-red-800">Retiradas por dia</p>
+          <strong className="text-3xl text-red-700">{dailyLimit}</strong>
           <p className="text-sm font-bold text-red-700">
-            {plural(plan.manualTotal, "retirada", "retiradas")}
+            {plural(dailyLimit, "refeição", "refeições")}
           </p>
         </div>
         <div className="rounded-md bg-red-700 p-4 text-white shadow-md">
           <p className="text-sm font-bold text-[#f4c624]">Prazo</p>
           <strong className="text-3xl">
-            {formatLongDate(plan.displayedEndDate)}
+            {formatLongDate(currentDeadline)}
           </strong>
           <p className="text-sm font-bold">data final calculada</p>
+        </div>
+      </section>
+
+      <section className="px-4 pb-8 lg:px-12 xl:px-28">
+        <div className="rounded-md bg-white p-4 shadow-md">
+          <p className="text-sm font-bold text-red-800">Comparativo de prazo</p>
+          <p className="mt-1 text-sm font-bold text-red-700">
+            Padrão: {formatLongDate(defaultDeadline)}
+          </p>
+          <p className="text-sm font-bold text-red-700">
+            Ajustado: {formatLongDate(currentDeadline)}
+          </p>
+          <p className="mt-1 text-sm font-black text-red-900">
+            {deadlineShiftText}
+          </p>
         </div>
       </section>
 
@@ -612,21 +870,18 @@ export default function CreditCalculator() {
                 Calendário
               </h2>
               <p className="text-sm font-bold text-red-800">
-                Auto = {dailyLimit} por dia. Dias marcados reajustam o prazo.
+                Distribuição automática de {dailyLimit} por dia útil. Dias com *
+                foram ajustados manualmente.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={resetExample}
-              className="rounded-full bg-[#f4c624] px-4 py-2 text-sm font-black text-red-700"
-            >
-              Recarregar exemplo
-            </button>
           </div>
 
           <div className="grid gap-5 xl:grid-cols-2">
             {plan.months.map((month) => (
-              <div key={month.key} className="rounded-md border border-red-100 p-3">
+              <div
+                key={month.key}
+                className="rounded-md border border-red-100 p-3"
+              >
                 <h3 className="mb-3 text-lg font-black text-red-700">
                   {month.label}
                 </h3>
@@ -644,23 +899,14 @@ export default function CreditCalculator() {
                       key={day.key}
                       type="button"
                       onClick={() => setSelectedDate(day.key)}
-                      className={getDayClass(day, selectedDate === day.key)}
+                      className={`${getDayClass(day)} ${selectedDate === day.key ? "ring-2 ring-red-600" : ""}`}
                     >
                       <span className="block text-sm font-black">
                         {day.date.getDate()}
                       </span>
                       <span className="mt-3 block text-[11px] font-black uppercase leading-tight">
-                        {day.isClosed
-                          ? "Fechado"
-                          : day.planned > 0
-                            ? `${day.planned} ref.`
-                            : "0 ref."}
+                        {getDayTag(day)}
                       </span>
-                      {day.isManual && (
-                        <span className="mt-1 block text-[10px] font-black uppercase">
-                          Manual
-                        </span>
-                      )}
                     </button>
                   ))}
                 </div>
@@ -671,77 +917,161 @@ export default function CreditCalculator() {
 
         <aside className="flex flex-col gap-4">
           <div className="rounded-md bg-[#fff4c7] p-4">
-            <p className="text-sm font-bold text-red-800">Dia selecionado</p>
-            <strong className="mt-1 block text-2xl font-black capitalize text-red-700">
-              {formatLongDate(parseDate(selectedDate))}
-            </strong>
+            <h2 className="text-lg font-black uppercase text-red-700">
+              Ajuste do Dia
+            </h2>
             <p className="mt-1 text-sm font-bold text-red-800">
-              {selectedPlan?.isClosed
-                ? "Sem atendimento"
-                : `${selectedPlan?.planned ?? 0} ${plural(selectedPlan?.planned ?? 0, "retirada", "retiradas")}`}
+              {formatLongDate(parseDate(selectedDate))}
             </p>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setDayOverride()}
-                className={`rounded-md px-3 py-2 text-sm font-black ${
-                  !selectedOverride
-                    ? "bg-red-600 text-white"
-                    : "bg-white text-red-700"
-                }`}
-              >
-                Auto
-              </button>
-              <button
-                type="button"
-                onClick={() => setDayOverride({ mode: "used", amount: 0 })}
-                className={`rounded-md px-3 py-2 text-sm font-black ${
-                  selectedOverride?.mode === "used" && selectedOverride.amount === 0
-                    ? "bg-red-600 text-white"
-                    : "bg-white text-red-700"
-                }`}
-              >
-                0 retirada
-              </button>
-              <button
-                type="button"
-                onClick={() => setDayOverride({ mode: "used", amount: 1 })}
-                className={`rounded-md px-3 py-2 text-sm font-black ${
-                  selectedOverride?.mode === "used" && selectedOverride.amount === 1
-                    ? "bg-red-600 text-white"
-                    : "bg-white text-red-700"
-                }`}
-              >
-                1 retirada
-              </button>
-              <button
-                type="button"
-                onClick={() => setDayOverride({ mode: "used", amount: dailyLimit })}
-                className={`rounded-md px-3 py-2 text-sm font-black ${
-                  selectedOverride?.mode === "used" &&
-                  selectedOverride.amount === dailyLimit
-                    ? "bg-red-600 text-white"
-                    : "bg-white text-red-700"
-                }`}
-              >
-                {dailyLimit} retiradas
-              </button>
-              <button
-                type="button"
-                onClick={() => setDayOverride({ mode: "closed" })}
-                className={`col-span-2 rounded-md px-3 py-2 text-sm font-black ${
-                  selectedOverride?.mode === "closed"
-                    ? "bg-neutral-950 text-white"
-                    : "bg-white text-red-700"
-                }`}
-              >
-                Restaurante fechado
-              </button>
-            </div>
+
+            {selectedPlan === undefined && (
+              <p className="mt-3 text-sm font-bold text-red-700">
+                Selecione um dia no calendário.
+              </p>
+            )}
+
+            {selectedPlan?.isClosed && (
+              <p className="mt-3 text-sm font-bold text-red-700">
+                Dia fechado. Não é possível ajustar retiradas.
+              </p>
+            )}
+
+            {selectedPlan && !selectedPlan.isClosed && (
+              <div className="mt-3 space-y-3">
+                <p className="text-sm font-bold text-red-800">
+                  Padrão do dia: {selectedPlan.baseline}{" "}
+                  {plural(selectedPlan.baseline, "retirada", "retiradas")}
+                </p>
+                <label className="flex flex-col gap-2 text-sm font-bold text-red-800">
+                  <span>Retiradas nesse dia</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={99}
+                    value={selectedSuggestedValue}
+                    onChange={(event) =>
+                      setDayAdjustment(
+                        selectedDate,
+                        Number(event.target.value),
+                        selectedPlan.baseline,
+                        selectedPlan.isClosed,
+                      )
+                    }
+                    className="h-11 rounded-md border border-red-100 px-3 text-lg font-black text-red-700 outline-none ring-red-600 focus:ring-2"
+                  />
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDayAdjustment(
+                        selectedDate,
+                        undefined,
+                        selectedPlan.baseline,
+                        selectedPlan.isClosed,
+                      )
+                    }
+                    className="rounded-md bg-red-600 px-3 py-2 text-sm font-black text-white"
+                  >
+                    Auto
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDayAdjustment(
+                        selectedDate,
+                        0,
+                        selectedPlan.baseline,
+                        selectedPlan.isClosed,
+                      )
+                    }
+                    className="rounded-md bg-white px-3 py-2 text-sm font-black text-red-700"
+                  >
+                    0 retirada
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDayAdjustment(
+                        selectedDate,
+                        1,
+                        selectedPlan.baseline,
+                        selectedPlan.isClosed,
+                      )
+                    }
+                    className="rounded-md bg-white px-3 py-2 text-sm font-black text-red-700"
+                  >
+                    1 retirada
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDayAdjustment(
+                        selectedDate,
+                        dailyLimit + 1,
+                        selectedPlan.baseline,
+                        selectedPlan.isClosed,
+                      )
+                    }
+                    className="rounded-md bg-white px-3 py-2 text-sm font-black text-red-700"
+                  >
+                    {dailyLimit + 1} retiradas
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-md bg-white p-4 shadow-md">
+            <h2 className="text-lg font-black uppercase text-red-700">
+              Configuração Compartilhada
+            </h2>
+            <p className="mt-1 text-sm font-bold text-red-800">
+              Os dados ficam salvos no banco e aparecem para todos os acessos na
+              Vercel.
+            </p>
+
+            {requiresAuth && (
+              <div className="mt-3 grid gap-2">
+                <input
+                  value={adminUser}
+                  onChange={(event) => setAdminUser(event.target.value)}
+                  placeholder="Usuário admin"
+                  className="h-10 rounded-md border border-red-100 px-3 text-sm font-bold text-red-700 outline-none ring-red-600 focus:ring-2"
+                />
+                <input
+                  value={adminPassword}
+                  onChange={(event) => setAdminPassword(event.target.value)}
+                  placeholder="Senha admin"
+                  type="password"
+                  className="h-10 rounded-md border border-red-100 px-3 text-sm font-bold text-red-700 outline-none ring-red-600 focus:ring-2"
+                />
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => void saveConfig()}
+              className="mt-3 w-full rounded-full bg-red-600 px-4 py-3 text-sm font-black text-white"
+            >
+              {saveStatus === "saving"
+                ? "Salvando..."
+                : "Salvar dados compartilhados"}
+            </button>
+
+            <p className="mt-2 text-xs font-bold text-red-700">{saveMessage}</p>
+            {updatedAt && (
+              <p className="mt-1 text-xs font-bold text-red-700">
+                Última atualização:{" "}
+                {new Date(updatedAt).toLocaleString("pt-BR")}
+              </p>
+            )}
           </div>
 
           <div className="rounded-md bg-red-600 p-4 text-white">
-            <h2 className="text-xl font-black uppercase">Texto para WhatsApp</h2>
+            <h2 className="text-xl font-black uppercase">
+              Texto para WhatsApp
+            </h2>
             <textarea
               value={summary}
               readOnly
