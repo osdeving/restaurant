@@ -1,138 +1,60 @@
 import React from 'react'
+import { formatCurrency } from '@/config/site'
+
+const orders = [
+  {
+    id: '#12345',
+    date: '01/10/2023',
+    price: 59.9,
+    products: 'Marmitex tradicional (2), refrigerante 1L (1)',
+    status: 'Saiu para entrega',
+  },
+  {
+    id: '#12346',
+    date: '02/10/2023',
+    price: 89.99,
+    products: 'Prato-feito com bife (2), salada completa (1)',
+    status: 'Em preparo',
+  },
+  {
+    id: '#12347',
+    date: '03/10/2023',
+    price: 120,
+    products: 'Marmitex parmegiana (3), feijoada da casa (1)',
+    status: 'Cancelado',
+  },
+  {
+    id: '#12348',
+    date: '04/10/2023',
+    price: 45.5,
+    products: 'Frango grelhado (1), salada completa (1)',
+    status: 'Entregue',
+  },
+]
 
 function OrdersPage() {
   return (
     <div className='page-fit-scroll p-4 lg:px-20 xl:px-40'>
       <table className='w-full border-separate border-spacing-3'>
-        <thead className=''>
+        <thead>
           <tr className='text-left text-sm md:text-base text-gray-500'>
-            <th className='hidden md:block'>Order ID</th>
-            <th className=''>Date</th>
-            <th className=''>Price</th>
-            <th className='hidden md:block'>Products</th>
-            <th className=''>Status</th>
+            <th className='hidden md:block'>Pedido</th>
+            <th>Data</th>
+            <th>Valor</th>
+            <th className='hidden md:block'>Produtos</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody className='text-black'>
-          <tr className='text-sm md:text-base bg-red-50'>
-            <td className='py-6 px-1 hidden md:block'>#12345</td>
-            <td className='py-6 px-1'>2023-10-01</td>
-            <td className='py-6 px-1'>$59.90</td>
-            <td className='py-6 px-1 hidden md:block'>Big Burger Menu (2), Veggie Pizza (2), Coca Cola 1L (2)</td>
-            <td className='py-6 px-1'>On the way (approx. 10min)...</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12346</td>
-            <td className='py-6 px-1'>2023-10-02</td>
-            <td className='py-6 px-1'>$89.99</td>
-            <td className='py-6 px-1 hidden md:block'>Product C</td>
-            <td className='py-6 px-1'>Pending</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12347</td>
-            <td className='py-6 px-1 '>2023-10-03</td>
-            <td className='py-6 px-1 '>$120.00</td>
-            <td className='py-6 px-1 hidden md:block'>Product D, Product E, Product F</td>
-            <td className='py-6 px-1'>Cancelled</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
-          <tr className='text-sm md:text-base odd:bg-gray-100'>
-            <td className='py-6 px-1 hidden md:block'>#12348</td>
-            <td className='py-6 px-1 '>2023-10-04</td>
-            <td className='py-6 px-1 '>$45.50</td>
-            <td className='py-6 px-1 hidden md:block'>Product G</td>
-            <td className='py-6 px-1'>Delivered</td>
-          </tr>
+          {orders.map((order) => (
+            <tr key={order.id} className='text-sm md:text-base odd:bg-[#fff4c7] even:bg-red-50'>
+              <td className='py-6 px-1 hidden md:block'>{order.id}</td>
+              <td className='py-6 px-1'>{order.date}</td>
+              <td className='py-6 px-1'>{formatCurrency(order.price)}</td>
+              <td className='py-6 px-1 hidden md:block'>{order.products}</td>
+              <td className='py-6 px-1'>{order.status}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

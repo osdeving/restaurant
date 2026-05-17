@@ -2,14 +2,16 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image';
-import Link from 'next//link';
+import Link from 'next/link';
 import CartIcon from './CartIcon';
+import { siteConfig } from '@/config/site';
 
 const links = [
-    { id: 1, title: 'Home', url: '/' },
-    { id: 2, title: 'Menu', url: '/' },
-    { id: 3, title: 'Working hours', url: '/' },
-    { id: 4, title: 'Contact', url: '/' },
+    { id: 1, title: 'Início', url: '/' },
+    { id: 2, title: 'Menu', url: '/menu' },
+    { id: 3, title: 'Créditos', url: '/creditos' },
+    { id: 4, title: 'Horários', url: '/' },
+    { id: 5, title: 'Contato', url: siteConfig.whatsappHref, external: true },
 ];
 
 const Menu = () => {
@@ -22,7 +24,7 @@ const Menu = () => {
         {!open ? (
         <Image
             src="/open.png"
-            alt="Menu Image"
+            alt="Abrir menu"
             width={20}
             height={20}
 
@@ -32,26 +34,32 @@ const Menu = () => {
         ) : (
         <Image
             src="/close.png"
-            alt="Menu Image"
+            alt="Fechar menu"
             width={20}
             height={20}
             onClick={() => setOpen(false)}
         />
         )}
         {open && (
-        <div className='absolute top-24 left-0 h-[calc(100vh-6rem)] w-full bg-red-500 text-white flex items-center justify-center gap-8 text-3xl flex-col z-10'>
+        <div className='absolute top-[6.5rem] left-0 h-[calc(100vh-6.5rem)] w-full bg-red-600 text-white flex items-center justify-center gap-8 text-3xl flex-col z-10'>
             {links.map((link) => (
-                <Link key={link.id} href={link.url} className="block p-4 text-center text-white" onClick={() => setOpen(false)}>
-                    {link.title}
-                </Link>
+                link.external ? (
+                    <a key={link.id} href={link.url} className="block p-4 text-center text-white" onClick={() => setOpen(false)}>
+                        {link.title}
+                    </a>
+                ) : (
+                    <Link key={link.id} href={link.url} className="block p-4 text-center text-white" onClick={() => setOpen(false)}>
+                        {link.title}
+                    </Link>
+                )
             ))}
             {users ? (
                 <Link href="/profile" className="block p-4 text-center text-white hover:bg-white" onClick={() => setOpen(false)}>
-                    Profile
+                    Perfil
                 </Link>
             ) : (
                 <Link href="/login" className="block p-4 text-center text-white hover:bg-white" onClick={() => setOpen(false)}>
-                    Login
+                    Entrar
                 </Link>
             )}
             <Link href="/cart" onClick={() => setOpen(false)}>

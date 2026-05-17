@@ -2,6 +2,7 @@ import AuthProvider from "@/components/AuthProvider";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import Notification from "@/components/Notification";
+import { siteConfig } from "@/config/site";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -17,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "MASSIMO Restaurant",
-    description: "Delicious Italian cuisine at your fingertips",
+    title: `${siteConfig.name} | ${siteConfig.specialty}`,
+    description: "Marmitex e prato-feito com almoço caseiro para retirar ou receber.",
 };
 
 export default function RootLayout({
@@ -27,7 +28,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="pt-BR">
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >

@@ -1,9 +1,9 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import type { ComponentType, JSX } from "react";
+import type { ComponentType } from "react";
 
-export function withAuthRedirect<P extends JSX.IntrinsicAttributes>(
+export function withAuthRedirect<P extends object>(
   WrappedComponent: ComponentType<P>
 ) {
   return function AuthRedirectWrapper(props: P) {
@@ -14,9 +14,9 @@ export function withAuthRedirect<P extends JSX.IntrinsicAttributes>(
       if (status === "authenticated") {
         router.push("/");
       }
-    }, [status]);
+    }, [router, status]);
 
-    if (status === "loading") return <div>Loading...</div>;
+    if (status === "loading") return <div>Carregando...</div>;
     if (status === "authenticated") return null;
 
     return <WrappedComponent {...props} />;

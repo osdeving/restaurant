@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from "react";
-import ProductItem from "./ProductItem"; // Import your ProductItem component
+import ProductItem from "./ProductItem";
 
 function ProductContainer() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,7 +34,7 @@ function ProductContainer() {
         <span className="text-xs text-red-400/70 animate-bounce">▼</span>
       </div>
 
-      {/* Scrollable Product List */}
+      {/* Lista de produtos */}
       <div
         ref={containerRef}
         className="flex-1 overflow-y-scroll scroll-hidden px-4 py-2 flex flex-col gap-4"

@@ -1,363 +1,115 @@
 type Product = {
-  id: number;
+  id: string;
   title: string;
   desc?: string;
   img?: string;
   price: number;
+  catSlug: string;
+  isFeatured?: boolean;
   options?: { title: string; additionalPrice: number }[];
 };
 
 type Products = Product[];
 
+const marmitexOptions = [
+  {
+    title: "Individual",
+    additionalPrice: 0,
+  },
+  {
+    title: "Grande",
+    additionalPrice: 5,
+  },
+  {
+    title: "Família",
+    additionalPrice: 16,
+  },
+];
+
 export const featuredProducts: Products = [
   {
-    id: 1,
-    title: "Sicilian",
-    desc: "Ignite your taste buds with a fiery combination of spicy pepperoni, jalapeños, crushed red pepper flakes, and melted mozzarella cheese, delivering a kick with every bite.",
-    img: "/temporary/p1.png",
-    price: 24.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Bacon Deluxe",
-    desc: "Indulge in smoky goodness with a flame-grilled beef patty, topped with crispy bacon, melted cheddar cheese, caramelized onions, and a smattering of tangy BBQ sauce.",
-    img: "/temporary/p2.png",
-    price: 29.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: "Bella Napoli",
-    desc: "A classic Italian delight featuring a thin, crispy crust, tangy tomato sauce, fresh mozzarella, and a medley of aromatic herbs topped with lettuce, tomatoes, and a dollop of tangy mayo.",
-    img: "/temporary/p3.png",
-    price: 24.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
-  },
-  {
-    id: 4,
-    title: "Spicy Arrabbiata",
-    desc: "Ignite your taste buds with this fiery pasta creation, combining penne in a spicy tomato sauce infused with garlic, red chili flakes, and fresh basil for the ultimate comfort food experience.",
+    id: "marmitex-tradicional",
+    title: "Marmitex tradicional",
+    desc: "Arroz, feijão, farofa, salada e carne do dia em uma marmita bem servida.",
     img: "/temporary/p4.png",
-    price: 26.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
-  },
-  {
-    id: 5,
-    title: "Jalapeño Fiesta",
-    desc: "Ignite your taste buds with a fiery kick! This burger features a succulent beef patty, fiery jalapeños, pepper jack cheese, and a zesty chipotle mayo sauce , and all the classic fixings on a toasted bun.",
-    img: "/temporary/p5.png",
-    price: 29.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
-  },
-  {
-    id: 6,
-    title: "Margherita Magic",
-    desc: "A timeless favorite with a twist, showcasing a thin crust topped with sweet tomatoes, fresh basil, creamy mozzarella, and a drizzle of extra virgin olive oil, fresh arugula, and a drizzle of balsamic glaze.",
-    img: "/temporary/p6.png",
     price: 24.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
+    catSlug: "marmitex",
+    isFeatured: true,
+    options: marmitexOptions,
   },
   {
-    id: 7,
-    title: "Garlic Parmesan Linguine",
-    desc: "A garlic lover's delight, featuring linguine smothered in a creamy Parmesan sauce, infused with garlic and garnished with chopped parsley, bell peppers, and cherry tomatoes.",
+    id: "prato-feito-bife",
+    title: "Prato-feito com bife",
+    desc: "Bife acebolado, arroz branco, feijão, batata frita, salada fresca e farofa.",
     img: "/temporary/p7.png",
-    price: 28.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
-  },
-  {
-    id: 8,
-    title: "Mediterranean Delight",
-    desc: "Embark on a culinary journey with this Mediterranean-inspired creation, featuring zesty feta cheese, Kalamata olives, sun-dried tomatoes, and a sprinkle of oregano.",
-    img: "/temporary/p8.png",
-    price: 32.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
-  },
-  {
-    id: 9,
-    title: "Hawaiian Teriyaki",
-    desc: "Experience a taste of the tropics with a juicy beef patty glazed in tangy teriyaki sauce, topped with grilled pineapple, crispy bacon, and fresh lettuce, and all the classic fixings on a toasted bun.",
-    img: "/temporary/p9.png",
     price: 29.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
-  },
-];
-
-
-
-
-export const pizzas: Products = [
-  {
-    id: 1,
-    title: "Sicilian",
-    desc: "Ignite your taste buds with a fiery combination of spicy pepperoni, jalapeños, crushed red pepper flakes, and melted mozzarella cheese, delivering a kick with every bite.",
-    img: "/temporary/p1.png",
-    price: 24.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
+    catSlug: "prato-feito",
+    isFeatured: true,
+    options: marmitexOptions,
   },
   {
-    id: 2,
-    title: "Mediterranean Delight",
-    desc: "Embark on a culinary journey with this Mediterranean-inspired creation, featuring zesty feta cheese, Kalamata olives, sun-dried tomatoes, and a sprinkle of oregano.",
-    img: "/temporary/p8.png",
-    price: 32.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
+    id: "frango-grelhado",
+    title: "Frango grelhado",
+    desc: "Filé de frango grelhado com arroz, feijão, legumes, salada e molho da casa.",
+    img: "/temporary/p6.png",
+    price: 27.9,
+    catSlug: "prato-feito",
+    isFeatured: true,
+    options: marmitexOptions,
   },
   {
-    id: 3,
-    title: "Bella Napoli",
-    desc: "A classic Italian delight featuring a thin, crispy crust, tangy tomato sauce, fresh mozzarella, and a medley of aromatic herbs topped with lettuce, tomatoes, and a dollop of tangy mayo.",
-    img: "/temporary/p3.png",
-    price: 26.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
-  },
-  {
-    id: 4,
-    title: "Pesto Primavera",
-    desc: "A classic Italian delight featuring a thin, crispy crust, tangy tomato sauce, fresh mozzarella, and a medley of aromatic herbs topped with lettuce, tomatoes, and a dollop of tangy mayo.",
+    id: "marmitex-parmegiana",
+    title: "Marmitex parmegiana",
+    desc: "Filé à parmegiana com arroz, feijão, purê, salada e acompanhamento do dia.",
     img: "/temporary/p10.png",
-    price: 28.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
+    price: 32.9,
+    catSlug: "marmitex",
+    isFeatured: true,
+    options: marmitexOptions,
   },
   {
-    id: 5,
-    title: "Veggie Supreme",
-    desc: "A classic Italian delight featuring a thin, crispy crust, tangy tomato sauce, fresh mozzarella, and a medley of aromatic herbs topped with lettuce, tomatoes, and a dollop of tangy mayo.",
+    id: "feijoada",
+    title: "Feijoada da casa",
+    desc: "Feijoada completa com arroz, couve, farofa, torresmo e laranja.",
+    img: "/temporary/p8.png",
+    price: 34.9,
+    catSlug: "prato-feito",
+    isFeatured: true,
+    options: marmitexOptions,
+  },
+  {
+    id: "salada-completa",
+    title: "Salada completa",
+    desc: "Folhas, legumes, tomate, proteína grelhada e molho especial para uma opção leve.",
     img: "/temporary/p11.png",
-    price: 24.9,
+    price: 25.9,
+    catSlug: "saladas",
+    isFeatured: true,
     options: [
       {
-        title: "Small",
+        title: "Simples",
         additionalPrice: 0,
       },
       {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
-      },
-    ],
-  },
-  {
-    id: 6,
-    title: "Four Cheese Fantasy",
-    desc: "Experience pure cheesy bliss with a melty blend of mozzarella, cheddar, provolone, and Parmesan cheeses, creating a rich and indulgent pizza experience.",
-    img: "/temporary/p12.png",
-    price: 22.9,
-    options: [
-      {
-        title: "Small",
-        additionalPrice: 0,
-      },
-      {
-        title: "Medium",
-        additionalPrice: 4,
-      },
-      {
-        title: "Large",
-        additionalPrice: 6,
+        title: "Com proteína",
+        additionalPrice: 7,
       },
     ],
   },
 ];
 
-export const singleProduct: Product = {
-  id: 1,
-  title: "Sicilian",
-  desc: "Ignite your taste buds with a fiery combination of spicy pepperoni, jalapeños, crushed red pepper flakes, and melted mozzarella cheese, delivering a kick with every bite.",
-  img: "/temporary/p1.png",
-  price: 24.9,
-  options: [
-    {
-      title: "Small",
-      additionalPrice: 0,
-    },
-    {
-      title: "Medium",
-      additionalPrice: 4,
-    },
-    {
-      title: "Large",
-      additionalPrice: 6,
-    },
-  ],
+export const productsByCategory: Record<string, Products> = {
+  marmitex: featuredProducts.filter((product) => product.catSlug === "marmitex"),
+  "prato-feito": featuredProducts.filter(
+    (product) => product.catSlug === "prato-feito",
+  ),
+  saladas: featuredProducts.filter((product) => product.catSlug === "saladas"),
 };
 
+export const singleProduct: Product = featuredProducts[0];
 
 type Menu = {
-  id: number;
+  id: string;
   slug: string;
   title: string;
   desc?: string;
@@ -367,26 +119,26 @@ type Menu = {
 
 export const menu: Menu = [
   {
-    id: 1,
-    slug: "pastas",
-    title: "Italian Pastas",
-    desc: "Savor the taste of perfection with our exquisite Italian handmade pasta menu.",
+    id: "marmitex",
+    slug: "marmitex",
+    title: "Marmitex",
+    desc: "Marmitas completas, bem servidas e prontas para retirar ou receber.",
     img: "/temporary/m1.png",
     color: "white",
   },
   {
-    id: 2,
-    slug: "burgers",
-    title: "Juicy Burgers",
-    desc: "Burger Bliss: Juicy patties, bold flavors, and gourmet toppings galore.",
+    id: "prato-feito",
+    slug: "prato-feito",
+    title: "Prato-feito",
+    desc: "Almoço de verdade com arroz, feijão, salada e proteína do dia.",
     img: "/temporary/m2.png",
     color: "black",
   },
   {
-    id: 3,
-    slug: "pizzas",
-    title: "Cheesy Pizzas",
-    desc: "Pizza Paradise: Irresistible slices, mouthwatering toppings, and cheesy perfection.",
+    id: "saladas",
+    slug: "saladas",
+    title: "Saladas",
+    desc: "Opções leves para acompanhar ou pedir como refeição completa.",
     img: "/temporary/m3.png",
     color: "white",
   },

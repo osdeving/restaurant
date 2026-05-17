@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 export default function Page() {
   const { data: session, status } = useSession();
 
-  if (status === 'loading') return <div>Loading...</div>;
+  if (status === 'loading') return <div>Carregando...</div>;
 
-  return <div>{session ? `Hello ${session.user?.name}` : 'Not signed in'}</div>;
+  return <div>{session ? `Olá, ${session.user?.name}` : 'Você não está conectado'}</div>;
 }

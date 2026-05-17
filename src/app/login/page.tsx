@@ -15,15 +15,16 @@ const LoginPage = () => {
         <div className="relative h-1/3 w-full md:h-full md:w-1/2">
           <Image
             src="/loginBg.png"
-            alt="Login Background"
+            alt="Fundo do login"
             fill
+            sizes="(min-width: 768px) 50vw, 100vw"
             className="object-cover"
           />
         </div>
         {/* FORM CONTAINER */}
         <div className="p-10 flex flex-col gap-8 md:w-1/2">
-          <h1 className="font-bold text-xl xl:text-3xl">Welcome</h1>
-          <p className="mb-6 text-gray-700">Log into your account or create a new one using social buttons</p>
+          <h1 className="font-bold text-xl xl:text-3xl">Entrar</h1>
+          <p className="mb-6 text-gray-700">Acesse sua conta ou crie uma nova usando as opções abaixo.</p>
 
           {/* GOOGLE SIGN IN */}
           <button
@@ -31,17 +32,17 @@ const LoginPage = () => {
             onClick={() => signIn('google')}
           >
             <Image src="/google.png" alt="Google" width={20} height={20} className="object-contain" />
-            <span>Sign in with Google</span>
+            <span>Entrar com Google</span>
           </button>
 
           {/* FACEBOOK SIGN IN */}
           <button className="flex gap-4 p-2 px-4 ring-1 ring-blue-100 rounded-md">
             <Image src="/facebook.png" alt="Facebook" width={20} height={20} className="object-contain" />
-            <span>Sign in with Facebook</span>
+            <span>Entrar com Facebook</span>
           </button>
 
           <p className="text-sm">
-            Have a problem? <Link href="/" className="underline">Contact us</Link>
+            Teve algum problema? <Link href="/" className="underline">Fale conosco</Link>
           </p>
         </div>
       </div>

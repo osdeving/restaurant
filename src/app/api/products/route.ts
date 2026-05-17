@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/app/utils/connect"
+import { featuredProducts, productsByCategory } from "@/data"
 
 // FETCH ALL PRODUCTS
 export const GET = async (req : NextRequest) => {
@@ -12,13 +13,11 @@ export const GET = async (req : NextRequest) => {
         ...(cat ? { catSlug: cat }  : {isFeatured: true}),
       },
     })
-    return NextResponse.json(products, { status: 200 })
-  } catch (error) {
-    console.error("Error fetching products:", error)
-    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 })
+    const fallbackProducts = cat ? productsByCategory[cat] ?? [] : featuredProducts
+    return NextResponse.json(products.length ? products : fallbackProducts, { status: 200 })
+  } catch {
+    return NextResponse.json(cat ? productsByCategory[cat] ?? [] : featuredProducts, { status: 200 })
   }
 }
-
-
 
 

@@ -1,5 +1,4 @@
 export type MenuType = {
-  price: number;
   id: string;
   slug: string;
   title: string;
@@ -13,7 +12,7 @@ export type ProductType = {
   title: string;
   desc?: string;
   img?: string;
-  price: number;
+  price: number | string;
   options?: {
     title: string;
     additionalPrice: number;

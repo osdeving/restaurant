@@ -9,8 +9,8 @@ const AuthButton = () => {
   if (!session) {
     return (
       <Link href="/login">
-        <div className="w-18 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm font-bold hover:opacity-80 normal-case">
-          Login
+        <div className="min-w-[4.5rem] h-8 px-3 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold hover:opacity-80 normal-case">
+          Entrar
         </div>
       </Link>
     )
@@ -19,9 +19,9 @@ const AuthButton = () => {
   return (
     <button
       onClick={() => signOut({ callbackUrl: '/' })}
-      className="w-18 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm font-bold hover:opacity-80"
+      className="min-w-[4.5rem] h-8 px-3 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold hover:opacity-80"
     >
-      Logout
+      Sair
     </button>
   )
 }

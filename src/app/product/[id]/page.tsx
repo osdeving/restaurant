@@ -6,7 +6,7 @@ import Image from 'next/image'
 
 const SingleProductPage = () => {
   return (
-    <div className='page-fit p-4 lg:px-20 xl:px-40 h-screen flex flex-col justify-around text-red-500 md:flex-row md:gap-8 md:items-center'>
+    <div className='page-fit p-4 lg:px-20 xl:px-40 h-screen flex flex-col justify-around text-red-600 md:flex-row md:gap-8 md:items-center bg-white'>
       {/* IMAGE CONTAINER */}
       <div className='flex-1 relative w-full h-1/2 md:h-[70%]'>
         {singleProduct.img && (
@@ -14,6 +14,7 @@ const SingleProductPage = () => {
             src={singleProduct.img}
             alt={singleProduct.title}
             fill
+            sizes="(min-width: 768px) 50vw, 100vw"
             className='object-contain'
           />
         )}

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { MenuType } from '@/app/types/types';
+import { menu as fallbackMenu } from '@/data';
 
 const getData = async (): Promise<MenuType> => {
   try {
@@ -9,32 +10,32 @@ const getData = async (): Promise<MenuType> => {
     });
 
     if (!res.ok) {
-      throw new Error('Failed to fetch categories');
+      throw new Error('Falha ao buscar categorias');
     }
 
-    return res.json();
+    const categories = await res.json();
+    return categories.length ? categories : fallbackMenu;
 
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return [];
+  } catch {
+    return fallbackMenu;
   }
 }
 
 const MenuPage = async () => {
   const menu = await getData();
   return (
-    <div className="page-fit p-4 lg:px-20 xl:px-40 h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex flex-col md:flex-row items-center">
+    <div className="page-fit p-4 lg:px-20 xl:px-40 h-[calc(100vh-6.5rem)] flex flex-col md:flex-row items-center gap-4 bg-[#f4c624]">
       {menu.map((item) => (
         <Link
             href={`/menu/${item.slug}`}
             key={item.id}
-            className="w-full h-1/3 bg-cover p-8 md:h-1/2"
+            className="w-full h-1/3 bg-cover bg-center p-8 md:h-1/2 rounded-md shadow-lg overflow-hidden"
             style={{ backgroundImage: `url(${item.img})` }}
           >
-          <div className={`text-${item.color} w-1/2`}>
+          <div className={`${item.color === 'black' ? 'text-neutral-950' : 'text-white'} w-2/3`}>
             <h1 className='uppercase font-bold text-3xl'>{item.title}</h1>
             <p className='text-sm my-8'>{item.desc}</p>
-            <button className={`hidden 2xl:block bg-${item.color} text-${item.color === 'black' ? 'white' : 'red-500'} py-2 px-4 rounded-md`}>Explore</button>
+            <button className="hidden 2xl:block bg-red-600 text-white py-2 px-4 rounded-md font-bold">Ver opções</button>
           </div>
         </Link>
       ))}

@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react'
+import { formatCurrency } from '@/config/site';
 
 type PriceProps = {
   price: number;
-  id: number;
+  id: number | string;
   options?: {
     title: string;
     additionalPrice: number;
@@ -24,15 +25,15 @@ const Price = ({ price, options }:PriceProps) => {
   return (
     <div className='flex flex-col gap-4'>
         {/* PRICE CONTAINER */}
-        <h2 className='text-2xl font-bold'>${totalPrice.toFixed(2)}</h2>
+        <h2 className='text-2xl font-bold'>{formatCurrency(totalPrice)}</h2>
 
         {/* OPTIONS CONTAINER */}
         <div className='flex gap-4'>
             {options && options.length > 0 && options.map((option, index) => (
                 <button
                     key={index}
-                    className='min-w-[6rem] p-2 ring-1 ring-red-400 rounded-md'
-                    style={{ backgroundColor: selectedOption === index ? 'rgb(248, 113,113)' : 'white',
+                    className='min-w-[6rem] p-2 ring-1 ring-red-500 rounded-md font-bold'
+                    style={{ backgroundColor: selectedOption === index ? 'rgb(220, 38, 38)' : 'white',
                         color: selectedOption === index ? 'white' : 'red' }}
                     onClick={() => {
                         setSelectedOption(index);
@@ -48,7 +49,7 @@ const Price = ({ price, options }:PriceProps) => {
         <div className='flex justify-between items-center'>
             {/* QUANTITY CONTAINER */}
             <div className='flex justify-between w-full p-3 ring-1 ring-red-500'>
-                <span>Quantity</span>
+                <span>Quantidade</span>
                 <div className='flex gap-3 items-center'>
                     <button onClick={() => setQuantity(prev => Math.max(prev - 1, 1))}>{'<'}</button>
                     <span>{quantity}</span>
@@ -56,7 +57,7 @@ const Price = ({ price, options }:PriceProps) => {
                 </div>
             </div>
             {/* ADD TO CART BUTTON */}
-            <button className='uppercase w-56 bg-red-500 text-white p-3 ring-1 ring-red-500'>Add to Cart</button>
+            <button className='uppercase w-56 bg-red-600 text-white p-3 ring-1 ring-red-600'>Adicionar ao carrinho</button>
         </div>
     </div>
   )
